@@ -5,19 +5,29 @@ body {
     height: 100vh;
     flex-direction: column;
     gap: 5rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: purple;
+}
+
+h1 {
+    font-size: 2.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .container {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
-    grid-template-areas: 
-    "um dois tres"
-    "quatro cinco seis"
-    "sete oito nove";
+    grid-template-areas:
+        "um dois tres"
+        "quatro cinco seis"
+        "sete oito nove";
     gap: 4px;
     background-color: purple;
-    width: 500px;  /* Definindo um tamanho para o tabuleiro */
+    width: 500px;
+    /* Definindo um tamanho para o tabuleiro */
     height: 500px;
 }
 
@@ -30,21 +40,48 @@ body {
     transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
-#um { grid-area: um; }
-#dois { grid-area: dois; }
-#tres { grid-area: tres; }
-#quatro { grid-area: quatro; }
-#cinco { grid-area: cinco; }
-#seis { grid-area: seis; }
-#sete { grid-area: sete; }
-#oito { grid-area: oito; }
-#nove { grid-area: nove; }
+#um {
+    grid-area: um;
+}
 
-.tabuleiro:hover, 
-.tabuleiro:focus, 
-.tabuleiro:active{
+#dois {
+    grid-area: dois;
+}
+
+#tres {
+    grid-area: tres;
+}
+
+#quatro {
+    grid-area: quatro;
+}
+
+#cinco {
+    grid-area: cinco;
+}
+
+#seis {
+    grid-area: seis;
+}
+
+#sete {
+    grid-area: sete;
+}
+
+#oito {
+    grid-area: oito;
+}
+
+#nove {
+    grid-area: nove;
+}
+
+.tabuleiro:hover,
+.tabuleiro:focus,
+.tabuleiro:active {
     outline: none !important;
-    box-shadow: none !important; /* Garante que navegadores baseados em Chromium não usem sombra */
+    box-shadow: none !important;
+    /* Garante que navegadores baseados em Chromium não usem sombra */
     transform: scale(.98);
 }
 
@@ -52,4 +89,62 @@ button {
     font-size: 2rem;
     color: purple;
     border: none;
+}
+
+.limpar-tabuleiro {
+    margin-bottom: 2rem;
+    padding: 2rem 5rem;
+    border-radius: 8px;
+
+}
+
+.limpar-tabuleiro:hover,
+.limpar-tabuleiro:focus,
+.limpar-tabuleiro:focus-visible {
+    border: solid 1px purple;
+    transform: scale(0.98);
+}
+
+@media (max-width: 480px) {
+    .container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        /* Mantém as 3 colunas */
+        width: 90vw;
+        /* Ocupa 90% da largura da tela */
+        max-width: 340px;
+        /* Não deixa esticar demais */
+        margin: 20px auto;
+        /* Centraliza na tela */
+        background-color: transparent;
+        /* Evita o vazamento de fundo */
+    }
+
+    .tabuleiro {
+        height: 28vw;        /* Altura proporcional à largura da tela */
+        max-height: 110px;   /* Limite máximo de altura */
+        font-size: 2.2rem;   /* Tamanho do texto (X, O ou números) */
+        background: #fff;    /* Cor de fundo do botão */
+        border: 2px solid purple; /* Garante a linha roxa */
+    }
+
+    #um, #dois, #tres { border-top: none; }
+    #sete, #oito, #nove { border-bottom: none; }
+    #um, #quatro, #sete { border-left: none; }
+    #tres, #seis, #nove { border-right: none; }
+
+   h1 {
+        font-size: 1.8rem;
+        text-align: center;
+        margin-top: 15px;
+    }
+
+    .limpar-tabuleiro {
+        display: block;
+        width: 60%;
+        max-width: 200px;
+        margin: 20px auto;
+        padding: 12px;
+        font-size: 1.1rem;
+    }
 }
