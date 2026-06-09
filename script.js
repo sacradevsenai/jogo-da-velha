@@ -1,285 +1,148 @@
-// arrays para lógica
+// ==========================================================================
+// ESTADO GLOBAL DO JOGO
+// ==========================================================================
 
-const casas = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+// O tabuleiro virtual substitui a necessidade de ler o HTML para tomar decisões
+let tabuleiro = ["", "", "", "", "", "", "", "", ""];
+const JOGADOR_HUMANO = "X";
+const JOGADOR_IA = "O";
+let jogoAtivo = true;
 
-const victory = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+// Mapeamento das 8 combinações possíveis de vitória no Jogo da Velha
+const combinacoesVitoria = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8], // Linhas
+    [0, 3, 6], [1, 4, 7], [2, 5, 8], // Colunas
+    [0, 4, 8], [2, 4, 6]             // Diagonais
+];
 
-const nomesDasCasas = ['um', 'dois', 'tres', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove'];
+// ==========================================================================
+// FUNÇÕES PRINCIPAIS DE JOGADA
+// ==========================================================================
 
-// O uso do const em relação ao let foi feito por ser boa prática
-// ao usar js, o let só deve ser usado se houver certeza de modificação do 
-// objeto inteiro em algum momento do projeto.
+// Esta função única substitui as 9 funções antigas (jogadaUm, jogadaDois...)
+function fazerJogada(indice) {
+    // Só permite a jogada se a casa estiver vazia e o jogo não tiver acabado
+    if (tabuleiro[indice] !== "" || !jogoAtivo) return;
 
+    // 1. TURNO DO HUMANO
+    tabuleiro[indice] = JOGADOR_HUMANO;
+    atualizarTela();
 
-// JOGADA DO COMPUTADOR
-
-function jogadaPC() {
-
-    let pcTurn = Math.floor(Math.random() * 9);
-    while (casas[pcTurn] == "X" || casas[pcTurn] == "O") {
-        pcTurn = Math.floor(Math.random() * 9);
+    if (verificarVitoria(tabuleiro, JOGADOR_HUMANO)) {
+        setTimeout(() => alert("Caramba, você venceu! (Isso não deveria acontecer)"), 100);
+        jogoAtivo = false;
+        return;
     }
 
-    let idBotao = nomesDasCasas[pcTurn]
+    if (verificarEmpate(tabuleiro)) {
+        setTimeout(() => alert("Deu empate! E isso é o melhor que você vai conseguir."), 100);
+        jogoAtivo = false;
+        return;
+    }
 
-    casas[pcTurn] = "O";
-    console.log(casas)
-    document.getElementById(idBotao).textContent = "O";
-    console.log(casas);
-}
+    // 2. TURNO DA IA (Chama o contra-ataque imediatamente)
+    jogoAtivo = false; // Bloqueia cliques do usuário enquanto a IA pensa
+    setTimeout(() => {
+        let melhorMovimento = calcularMelhorMovimento();
+        if (melhorMovimento !== null) {
+            tabuleiro[melhorMovimento] = JOGADOR_IA;
+            atualizarTela();
 
-// VERIFICAÇÃO VITÓRIA COMPUTADOR
-
-function vitoriaComputador() {
-    for (let j = 0; j < victory.length; j++) {
-        let counter = 0;
-        for (let i = 0; i < 3; i++) {
-            if (casas[victory[j][i]] == "O") {
-                counter++;
+            if (verificarVitoria(tabuleiro, JOGADOR_IA)) {
+                alert("Deu a lógica! Mais sorte na próxima.");
+            } else if (verificarEmpate(tabuleiro)) {
+                alert("Deu empate!");
+            } else {
+                jogoAtivo = true; // Devolve o controle para o humano
             }
         }
-        if (counter == 3) {
-            return true;
-        }
-    }
-    return false;
+    }, 100); // Um leve delay de 100ms para parecer que a IA está "pensando"
 }
 
-// VERIFICAÇÃO DE VITÓRIA HUMANO
-
-function vitoriaHumano() {
-    for (let j = 0; j < victory.length; j++) {
-        let counter = 0;
-        for (let i = 0; i < 3; i++) {
-            if (casas[victory[j][i]] == "X") {
-                counter++;
-            }
-        }
-        if (counter == 3) {
-            return true;
-        }
-    }
-    return false;
-}
-
-
-// VERIFICAÇÃO DE EMPATE
-
-function checarEmpate() {
-    let counter = 0;
+// Vincula o array de memória direto aos botões do seu HTML
+function atualizarTela() {
+    const botoes = document.getElementsByClassName("tabuleiro");
     for (let i = 0; i < 9; i++) {
-        if (casas[i] != "X" && casas[i] != "O") {
-            counter++;
-        }
+        botoes[i].innerText = tabuleiro[i];
     }
-    if (counter > 0) {
-        return false;
-    }
-    return true;
 }
 
-// JOGADAS
+// ==========================================================================
+// LOGICA DO ALGORITMO MINIMAX (A IA LADROA)
+// ==========================================================================
 
-function jogadaUm() {
-    if (casas[0] == "X" || casas[0] == "O") {
-        alert("Essa casa já está ocupada, escolha outra!");
-    } else {
-        casas[0] = "X";
-        document.getElementById('um').textContent = "X";
+// Função que inicia a árvore de decisão do Minimax para escolher a melhor casa
+function calcularMelhorMovimento() {
+    let melhorPontuacao = -Infinity;
+    let movimentoEscolhido = null;
 
-        if (vitoriaHumano() == true) {
-            setTimeout(function () { alert("Você venceu!!!"); reset(); }, 15);
-        } else if (checarEmpate() == true) {
-            setTimeout(function () { alert("Deu velha!!! O jogo empatou!"); reset(); }, 15);
-        } else {
-            jogadaPC();
-            if (vitoriaComputador() == true) {
-                setTimeout(function () { alert("Você perdeu!"); reset(); }, 15);
-            } else if (checarEmpate() == true) {
-                setTimeout(function () { alert("Deu velha!!! O jogo empatou!"); reset(); }, 15);
+    for (let i = 0; i < 9; i++) {
+        if (tabuleiro[i] === "") {
+            tabuleiro[i] = JOGADOR_IA; // Simula a jogada da IA
+            
+            // Chama o minimax passando 'false' porque a próxima vez simulada é do humano
+            let pontuacao = minimax(tabuleiro, 0, false);
+            
+            tabuleiro[i] = ""; // Desfaz a simulação (Backtracking)
+
+            if (pontuacao > melhorPontuacao) {
+                melhorPontuacao = pontuacao;
+                movimentoEscolhido = i;
             }
         }
     }
+    return movimentoEscolhido;
 }
 
-function jogadaDois() {
-    if (casas[1] == "X" || casas[1] == "O") {
-        alert("Essa casa já está ocupada, escolha outra!");
-    } else {
-        casas[1] = "X";
-        document.getElementById('dois').textContent = "X";
+// O motor recursivo do Minimax
+function minimax(estadoTabuleiro, profundidade, ehMaximizador) {
+    // Condições de parada (Cenários finais simulados)
+    if (verificarVitoria(estadoTabuleiro, JOGADOR_IA)) return 10 - profundidade;
+    if (verificarVitoria(estadoTabuleiro, JOGADOR_HUMANO)) return profundidade - 10;
+    if (verificarEmpate(estadoTabuleiro)) return 0;
 
-        if (vitoriaHumano() == true) {
-            setTimeout(function () { alert("Você venceu!!!"); reset(); }, 15);
-        } else if (checarEmpate() == true) {
-            setTimeout(function () { alert("Deu velha!!! O jogo empatou!"); reset(); }, 15);
-        } else {
-            jogadaPC();
-            if (vitoriaComputador() == true) {
-                setTimeout(function () { alert("Você perdeu!"); reset(); }, 15);
-            } else if (checarEmpate() == true) {
-                setTimeout(function () { alert("Deu velha!!! O jogo empatou!"); reset(); }, 15);
+    if (ehMaximizador) {
+        let melhorPontuacao = -Infinity;
+        for (let i = 0; i < 9; i++) {
+            if (estadoTabuleiro[i] === "") {
+                estadoTabuleiro[i] = JOGADOR_IA;
+                let pontuacao = minimax(estadoTabuleiro, profundidade + 1, false);
+                estadoTabuleiro[i] = "";
+                melhorPontuacao = Math.max(pontuacao, melhorPontuacao);
             }
         }
+        return melhorPontuacao;
+    } else {
+        let melhorPontuacao = Infinity;
+        for (let i = 0; i < 9; i++) {
+            if (estadoTabuleiro[i] === "") {
+                estadoTabuleiro[i] = JOGADOR_HUMANO;
+                let pontuacao = minimax(estadoTabuleiro, profundidade + 1, true);
+                estadoTabuleiro[i] = "";
+                melhorPontuacao = Math.min(pontuacao, melhorPontuacao);
+            }
+        }
+        return melhorPontuacao;
     }
 }
 
-function jogadaTres() {
-    if (casas[2] == "X" || casas[2] == "O") {
-        alert("Essa casa já está ocupada, escolha outra!");
-    } else {
-        casas[2] = "X";
-        document.getElementById('tres').textContent = "X";
+// ==========================================================================
+// FUNÇÕES AUXILIARES DE VALIDAÇÃO
+// ==========================================================================
 
-        if (vitoriaHumano() == true) {
-            setTimeout(function () { alert("Você venceu!!!"); reset(); }, 15);
-        } else if (checarEmpate() == true) {
-            setTimeout(function () { alert("Deu velha!!! O jogo empatou!"); reset(); }, 15);
-        } else {
-            jogadaPC();
-            if (vitoriaComputador() == true) {
-                setTimeout(function () { alert("Você perdeu!"); reset(); }, 15);
-            } else if (checarEmpate() == true) {
-                setTimeout(function () { alert("Deu velha!!! O jogo empatou!"); reset(); }, 15);
-            }
-        }
-    }
+function verificarVitoria(tab, jogador) {
+    return combinacoesVitoria.some(comb => {
+        return comb.every(indice => tab[indice] === jogador);
+    });
 }
 
-function jogadaQuatro() {
-    if (casas[3] == "X" || casas[3] == "O") {
-        alert("Essa casa já está ocupada, escolha outra!");
-    } else {
-        casas[3] = "X";
-        document.getElementById('quatro').textContent = "X";
-
-        if (vitoriaHumano() == true) {
-            setTimeout(function () { alert("Você venceu!!!"); reset(); }, 15);
-        } else if (checarEmpate() == true) {
-            setTimeout(function () { alert("Deu velha!!! O jogo empatou!"); reset(); }, 15);
-        } else {
-            jogadaPC();
-            if (vitoriaComputador() == true) {
-                setTimeout(function () { alert("Você perdeu!"); reset(); }, 15);
-            } else if (checarEmpate() == true) {
-                setTimeout(function () { alert("Deu velha!!! O jogo empatou!"); reset(); }, 15);
-            }
-        }
-    }
+function verificarEmpate(tab) {
+    return tab.every(casa => casa !== "");
 }
 
-function jogadaCinco() {
-    if (casas[4] == "X" || casas[4] == "O") {
-        alert("Essa casa já está ocupada, escolha outra!");
-    } else {
-        casas[4] = "X";
-        document.getElementById('cinco').textContent = "X";
-
-        if (vitoriaHumano() == true) {
-            setTimeout(function () { alert("Você venceu!!!"); reset(); }, 15);
-        } else if (checarEmpate() == true) {
-            setTimeout(function () { alert("Deu velha!!! O jogo empatou!"); reset(); }, 15);
-        } else {
-            jogadaPC();
-            if (vitoriaComputador() == true) {
-                setTimeout(function () { alert("Você perdeu!"); reset(); }, 15);
-            } else if (checarEmpate() == true) {
-                setTimeout(function () { alert("Deu velha!!! O jogo empatou!"); reset(); }, 15);
-            }
-        }
-    }
-}
-
-function jogadaSeis() {
-    if (casas[5] == "X" || casas[5] == "O") {
-        alert("Essa casa já está ocupada, escolha outra!");
-    } else {
-        casas[5] = "X";
-        document.getElementById('seis').textContent = "X";
-
-        if (vitoriaHumano() == true) {
-            setTimeout(function () { alert("Você venceu!!!"); reset(); }, 15);
-        } else if (checarEmpate() == true) {
-            setTimeout(function () { alert("Deu velha!!! O jogo empatou!"); reset(); }, 15);
-        } else {
-            jogadaPC();
-            if (vitoriaComputador() == true) {
-                setTimeout(function () { alert("Você perdeu!"); reset(); }, 15);
-            } else if (checarEmpate() == true) {
-                setTimeout(function () { alert("Deu velha!!! O jogo empatou!"); reset(); }, 15);
-            }
-        }
-    }
-}
-
-function jogadaSete() {
-    if (casas[6] == "X" || casas[6] == "O") {
-        alert("Essa casa já está ocupada, escolha outra!");
-    } else {
-        casas[6] = "X";
-        document.getElementById('sete').textContent = "X";
-
-        if (vitoriaHumano() == true) {
-            setTimeout(function () { alert("Você venceu!!!"); reset(); }, 15);
-        } else if (checarEmpate() == true) {
-            setTimeout(function () { alert("Deu velha!!! O jogo empatou!"); reset(); }, 15);
-        } else {
-            jogadaPC();
-            if (vitoriaComputador() == true) {
-                setTimeout(function () { alert("Você perdeu!"); reset(); }, 15);
-            } else if (checarEmpate() == true) {
-                setTimeout(function () { alert("Deu velha!!! O jogo empatou!"); reset(); }, 15);
-            }
-        }
-    }
-}
-
-function jogadaOito() {
-    if (casas[7] == "X" || casas[7] == "O") {
-        alert("Essa casa já está ocupada, escolha outra!");
-    } else {
-        casas[7] = "X";
-        document.getElementById('oito').textContent = "X";
-
-        if (vitoriaHumano() == true) {
-            setTimeout(function () { alert("Você venceu!!!"); reset(); }, 15);
-        } else if (checarEmpate() == true) {
-            setTimeout(function () { alert("Deu velha!!! O jogo empatou!"); reset(); }, 15);
-        } else {
-            jogadaPC();
-            if (vitoriaComputador() == true) {
-                setTimeout(function () { alert("Você perdeu!"); reset(); }, 15);
-            } else if (checarEmpate() == true) {
-                setTimeout(function () { alert("Deu velha!!! O jogo empatou!"); reset(); }, 15);
-            }
-        }
-    }
-}
-
-function jogadaNove() {
-    if (casas[8] == "X" || casas[8] == "O") {
-        alert("Essa casa já está ocupada, escolha outra!");
-    } else {
-        casas[8] = "X";
-        document.getElementById('nove').textContent = "X";
-
-        if (vitoriaHumano() == true) {
-            setTimeout(function () { alert("Você venceu!!!"); reset(); }, 15);
-        } else if (checarEmpate() == true) {
-            setTimeout(function () { alert("Deu velha!!! O jogo empatou!"); reset(); }, 15);
-        } else {
-            jogadaPC();
-            if (vitoriaComputador() == true) {
-                setTimeout(function () { alert("Você perdeu!"); reset(); }, 15);
-            } else if (checarEmpate() == true) {
-                setTimeout(function () { alert("Deu velha!!! O jogo empatou!"); reset(); }, 15);
-            }
-        }
-    }
-}
-
-// BOTÃO DE RESET
-
+// Função do botão resetar atualizada para o novo padrão
 function reset() {
-    window.location.reload(true);
+    tabuleiro = ["", "", "", "", "", "", "", "", ""];
+    jogoAtivo = true;
+    atualizarTela();
 }

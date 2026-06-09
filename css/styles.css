@@ -20,6 +20,9 @@ h1 {
     margin: 0;
 }
 
+h4 {
+    margin: 0;
+}
 .container {
 display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -56,6 +59,13 @@ background-color: white !important;
 button {
     font-size: 2.5rem;
     color: purple;
+}
+
+a{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
 }
 
 .limpar-tabuleiro {
