@@ -1,0 +1,55 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+    gap: 5rem;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    grid-template-areas: 
+    "um dois tres"
+    "quatro cinco seis"
+    "sete oito nove";
+    gap: 4px;
+    background-color: purple;
+    width: 500px;  /* Definindo um tamanho para o tabuleiro */
+    height: 500px;
+}
+
+.tabuleiro {
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+#um { grid-area: um; }
+#dois { grid-area: dois; }
+#tres { grid-area: tres; }
+#quatro { grid-area: quatro; }
+#cinco { grid-area: cinco; }
+#seis { grid-area: seis; }
+#sete { grid-area: sete; }
+#oito { grid-area: oito; }
+#nove { grid-area: nove; }
+
+.tabuleiro:hover, 
+.tabuleiro:focus, 
+.tabuleiro:active{
+    outline: none !important;
+    box-shadow: none !important; /* Garante que navegadores baseados em Chromium não usem sombra */
+    transform: scale(.98);
+}
+
+button {
+    font-size: 2rem;
+    color: purple;
+    border: none;
+}
